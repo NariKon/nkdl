@@ -1,6 +1,7 @@
 import numpy as np
+import pytest
 
-from core import Variable
+from core import Variable, Function, Square
 
 
 class TestVariable:
@@ -14,3 +15,17 @@ class TestVariable:
         x.data = np.array([4, 5, 6])
 
         assert np.array_equal(x.data, np.array([4, 5, 6]))
+
+
+class TestFunction:
+    def test_func_instantiation(self):
+        with pytest.raises(TypeError):
+            Function()
+
+    def test_square_call(self):
+        x = Variable(np.array([3, 4, 5]))
+        f = Square()
+        y = f(x)
+
+        assert isinstance(y, Variable)
+        assert np.array_equal(y.data, np.array([9, 16, 25]))
