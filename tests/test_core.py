@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from core import Variable, Function, Square
+from core import Variable, Function, Square, Exp
 
 
 class TestVariable:
@@ -29,3 +29,11 @@ class TestFunction:
 
         assert isinstance(y, Variable)
         assert np.array_equal(y.data, np.array([9, 16, 25]))
+
+    def test_func_composition(self):
+        x = Variable(np.array(0.5))
+        a = Square()(x)
+        b = Exp()(a)
+        y = Square()(b)
+
+        assert np.allclose(y.data, np.array(1.64872127))

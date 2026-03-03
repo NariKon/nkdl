@@ -21,3 +21,8 @@ class Function(ABC):
 class Square(Function):
     def forward(self, x: np.ndarray) -> np.ndarray:
         return np.square(x)
+
+
+class Exp(Function):
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        return np.exp(x)
