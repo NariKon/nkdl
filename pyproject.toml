@@ -1,0 +1,11 @@
+[project]
+name = "nkdl"
+version = "0.1.0"
+description = "Deep learning framework from scratch with support for MLX"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "mlx>=0.31.0",
+    "numpy>=2.4.2",
+    "pytest>=9.0.2",
+]
