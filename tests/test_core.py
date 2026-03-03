@@ -37,3 +37,22 @@ class TestFunction:
         y = Square()(b)
 
         assert np.allclose(y.data, np.array(1.64872127))
+
+
+class TestBackPropagation:
+    def test_manual_back_propagation(self):
+        A = Square()
+        B = Exp()
+        C = Square()
+
+        x = Variable(np.array(0.5))
+        a = A(x)
+        b = B(a)
+        y = C(b)  # (e^{x^2})^2 = e^{2x^2}
+
+        y.grad = np.array(1.0)
+        b.grad = C.backward(y.grad)
+        a.grad = B.backward(b.grad)
+        x.grad = A.backward(a.grad)
+
+        assert np.isclose(x.grad, 4 * x.data * np.e ** (2 * (x.data**2)))  # 4xe^{2x^2}
