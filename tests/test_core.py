@@ -2,6 +2,8 @@ import numpy as np
 import pytest
 
 from core import Variable, Function, Square, Exp
+from utils import numerical_diff
+from functions import exp, square
 
 
 class TestVariable:
@@ -75,16 +77,18 @@ class TestBackPropagation:
         assert y._creator.input._creator.input._creator.input == x
 
     def test_automated_back_propagation(self):
-        A = Square()
-        B = Exp()
-        C = Square()
-
         x = Variable(np.array(0.5))
-        a = A(x)
-        b = B(a)
-        y = C(b)
+        y = square(exp(square(x)))
 
-        # y.grad = np.array(1.0)
-        # `backward` method automatically set ones-like array for `y`
+        # `backward` method automatically set `y.grad`
         y.backward()
         assert np.isclose(x.grad, 4 * x.data * np.e ** (2 * (x.data**2)))  # 4xe^{2x^2}
+
+    def test_gradient_check(self):
+        x = Variable(np.random.rand(1))
+        f = lambda x: square(exp(square(x)))
+        y = f(x)
+
+        y.backward()
+        num_grad = numerical_diff(f, x)
+        assert np.allclose(x.grad, num_grad)
