@@ -25,11 +25,15 @@ class Variable:
         funcs = [self._creator]
         while funcs:
             f = funcs.pop()
-            x, y = f.inputs[0], f.outputs[0]
-            x.grad = f.backward(y.grad)
+            gys = [output.grad for output in f.outputs]
+            gxs = f.backward(*gys)
+            if not isinstance(gxs, tuple):
+                gxs = (gxs,)
 
-            if x._creator is not None:
-                funcs.append(x._creator)
+            for x, gx in zip(f.inputs, gxs):
+                x.grad = gx
+                if x._creator is not None:
+                    funcs.append(x._creator)
 
 
 class Function(ABC):
@@ -81,5 +85,5 @@ class Add(Function):
         return (x1 + x2,)
 
     @override
-    def backward(self, gy):
-        raise NotImplemented()
+    def backward(self, gy: np.ndarray) -> tuple[np.ndarray]:
+        return (gy, gy)

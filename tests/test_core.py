@@ -99,3 +99,13 @@ class TestAdd:
         xs = (Variable(np.array(2)), Variable(np.array(3)))
         y = add(*xs)
         assert y.data == 5
+
+    def test_composite_of_square(self):
+        x = Variable(np.array(2.0))
+        y = Variable(np.array(3.0))
+        z = add(square(x), square(y))
+        z.backward()
+
+        assert z.data == 13.0
+        assert x.grad == 4.0
+        assert y.grad == 6.0
