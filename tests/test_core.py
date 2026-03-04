@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
 
-from core import Variable, Function, Square, Exp, Add
+from core import Variable, Function, Square, Exp
 from utils import numerical_diff
-from functions import exp, square
+from functions import exp, square, add
 
 
 class TestVariable:
@@ -97,6 +97,5 @@ class TestBackPropagation:
 class TestAdd:
     def test_add(self):
         xs = (Variable(np.array(2)), Variable(np.array(3)))
-        f = Add()
-        y = f(*xs)
+        y = add(*xs)
         assert y.data == 5

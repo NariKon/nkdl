@@ -33,10 +33,13 @@ class Variable:
 
 
 class Function(ABC):
+    # TODO: Sequence[Variable] -> Sequence[Variable] is preferable
     def __call__(self, *inputs: Sequence[Variable]) -> Variable | Sequence[Variable]:
         self.inputs = inputs
         xs = [x.data for x in inputs]
-        ys = self.forward(xs)
+        ys = self.forward(*xs)
+        if not isinstance(ys, tuple):
+            ys = (ys,)
         outputs = [Variable(y, creator=self) for y in ys]
         self.outputs = outputs
         return outputs if len(outputs) > 1 else outputs[0]
@@ -74,8 +77,7 @@ class Exp(Function):
 
 class Add(Function):
     @override
-    def forward(self, xs: np.ndarray) -> tuple[np.ndarray]:
-        x1, x2 = xs
+    def forward(self, x1: np.ndarray, x2: np.ndarray) -> tuple[np.ndarray]:
         return (x1 + x2,)
 
     @override
