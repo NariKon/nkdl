@@ -31,9 +31,16 @@ class Variable:
                 gxs = (gxs,)
 
             for x, gx in zip(f.inputs, gxs):
-                x.grad = gx
+                if x.grad is None:
+                    x.grad = gx
+                else:
+                    # create new instance since in-place operation would modify the previous Variable's grad
+                    x.grad = x.grad + gx
                 if x._creator is not None:
                     funcs.append(x._creator)
+
+    def cleargrad(self):
+        self.grad = None
 
 
 class Function(ABC):
