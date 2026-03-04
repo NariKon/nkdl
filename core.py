@@ -1,10 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Union
 import numpy as np
 
 
 class Variable:
-    def __init__(self, data: np.ndarray):
+    def __init__(self, data: Union[np.generic, np.ndarray]):
+        if data is not None:
+            if np.isscalar(data):
+                data = np.array(data)
+            elif not isinstance(data, np.ndarray):
+                raise TypeError(
+                    f"{type(data)} is not supported. Use np.ndarray instead."
+                )
+
         self.data = data
         self.grad: Optional[np.ndarray] = None
         self._creator: Optional[Function] = None
@@ -13,6 +21,9 @@ class Variable:
         self._creator = func
 
     def backward(self):
+        if self.grad is None:
+            self.grad = np.ones_like(self.data)
+
         funcs = [self._creator]
         while funcs:
             f = funcs.pop()

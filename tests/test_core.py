@@ -84,6 +84,7 @@ class TestBackPropagation:
         b = B(a)
         y = C(b)
 
-        y.grad = np.array(1.0)
+        # y.grad = np.array(1.0)
+        # `backward` method automatically set ones-like array for `y`
         y.backward()
         assert np.isclose(x.grad, 4 * x.data * np.e ** (2 * (x.data**2)))  # 4xe^{2x^2}
