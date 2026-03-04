@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from typing import override
 import numpy as np
 
@@ -24,7 +25,7 @@ class Variable:
         funcs = [self._creator]
         while funcs:
             f = funcs.pop()
-            x, y = f.input, f.output
+            x, y = f.inputs[0], f.outputs[0]
             x.grad = f.backward(y.grad)
 
             if x._creator is not None:
@@ -32,13 +33,13 @@ class Variable:
 
 
 class Function(ABC):
-    def __call__(self, input: Variable) -> Variable:
-        self.input = input
-        x = input.data
-        y = self.forward(x)
-        output = Variable(y, creator=self)
-        self.output = output
-        return output
+    def __call__(self, *inputs: Sequence[Variable]) -> Variable | Sequence[Variable]:
+        self.inputs = inputs
+        xs = [x.data for x in inputs]
+        ys = self.forward(xs)
+        outputs = [Variable(y, creator=self) for y in ys]
+        self.outputs = outputs
+        return outputs if len(outputs) > 1 else outputs[0]
 
     @abstractmethod
     def forward(self, x: np.ndarray) -> np.ndarray:
@@ -56,7 +57,7 @@ class Square(Function):
 
     @override
     def backward(self, gy: np.ndarray) -> np.ndarray:
-        x = self.input.data
+        x = self.inputs[0].data
         return 2 * x * gy
 
 
@@ -67,5 +68,16 @@ class Exp(Function):
 
     @override
     def backward(self, gy: np.ndarray) -> np.ndarray:
-        x = self.input.data
+        x = self.inputs[0].data
         return np.exp(x) * gy
+
+
+class Add(Function):
+    @override
+    def forward(self, xs: np.ndarray) -> tuple[np.ndarray]:
+        x1, x2 = xs
+        return (x1 + x2,)
+
+    @override
+    def backward(self, gy):
+        raise NotImplemented()

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from core import Variable, Function, Square, Exp
+from core import Variable, Function, Square, Exp, Add
 from utils import numerical_diff
 from functions import exp, square
 
@@ -70,11 +70,11 @@ class TestBackPropagation:
         y = C(b)
 
         assert y._creator == C
-        assert y._creator.input == b
-        assert y._creator.input._creator == B
-        assert y._creator.input._creator.input == a
-        assert y._creator.input._creator.input._creator == A
-        assert y._creator.input._creator.input._creator.input == x
+        assert y._creator.inputs[0] == b
+        assert y._creator.inputs[0]._creator == B
+        assert y._creator.inputs[0]._creator.inputs[0] == a
+        assert y._creator.inputs[0]._creator.inputs[0]._creator == A
+        assert y._creator.inputs[0]._creator.inputs[0]._creator.inputs[0] == x
 
     def test_automated_back_propagation(self):
         x = Variable(np.array(0.5))
@@ -92,3 +92,11 @@ class TestBackPropagation:
         y.backward()
         num_grad = numerical_diff(f, x)
         assert np.allclose(x.grad, num_grad)
+
+
+class TestAdd:
+    def test_add(self):
+        xs = (Variable(np.array(2)), Variable(np.array(3)))
+        f = Add()
+        y = f(*xs)
+        assert y.data == 5
