@@ -7,6 +7,16 @@ class Variable:
     def __init__(self, data: np.ndarray):
         self.data = data
         self.grad: Optional[np.ndarray] = None
+        self._creator: Optional[Function] = None
+
+    def set_creator(self, func: Function):
+        self._creator = func
+
+    def backward(self):
+        if f := self._creator:
+            x = f.input
+            x.grad = f.backward(self.grad)
+            x.backward()
 
 
 class Function(ABC):
@@ -14,7 +24,10 @@ class Function(ABC):
         self.input = input
         x = input.data
         y = self.forward(x)
-        return Variable(y)
+        output = Variable(y)
+        output.set_creator(self)
+        self.output = output
+        return output
 
     @abstractmethod
     def forward(self, x: np.ndarray) -> np.ndarray:

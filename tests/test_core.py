@@ -56,3 +56,34 @@ class TestBackPropagation:
         x.grad = A.backward(a.grad)
 
         assert np.isclose(x.grad, 4 * x.data * np.e ** (2 * (x.data**2)))  # 4xe^{2x^2}
+
+    def test_traverse_linked_nodes_in_reverse(self):
+        A = Square()
+        B = Exp()
+        C = Square()
+
+        x = Variable(np.array(0.5))
+        a = A(x)
+        b = B(a)
+        y = C(b)
+
+        assert y._creator == C
+        assert y._creator.input == b
+        assert y._creator.input._creator == B
+        assert y._creator.input._creator.input == a
+        assert y._creator.input._creator.input._creator == A
+        assert y._creator.input._creator.input._creator.input == x
+
+    def test_automated_back_propagation(self):
+        A = Square()
+        B = Exp()
+        C = Square()
+
+        x = Variable(np.array(0.5))
+        a = A(x)
+        b = B(a)
+        y = C(b)
+
+        y.grad = np.array(1.0)
+        y.backward()
+        assert np.isclose(x.grad, 4 * x.data * np.e ** (2 * (x.data**2)))  # 4xe^{2x^2}
