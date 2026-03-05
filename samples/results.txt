@@ -1,0 +1,21 @@
+Before improvement.
+Filename: samples/memory_prof_sample.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+     7     34.3 MiB     34.3 MiB           1   @profile
+     8                                         def nested_square_loop(iter_max=10):
+     9     34.4 MiB      0.0 MiB          11       for _ in range(iter_max):
+    10     34.4 MiB      0.0 MiB          10           x = Variable(np.array(10_000))
+    11     34.4 MiB      0.0 MiB          10           y = square(square(square(x)))
+
+After improvement (with weakref)
+Filename: samples/memory_prof_sample.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+     7     34.2 MiB     34.2 MiB           1   @profile
+     8                                         def nested_square_loop(iter_max=10):
+     9     34.2 MiB      0.0 MiB          11       for _ in range(iter_max):
+    10     34.2 MiB      0.0 MiB          10           x = Variable(np.array(10_000))
+    11     34.2 MiB      0.1 MiB          10           y = square(square(square(x)))

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 import heapq
 from typing import override
+import weakref
 import numpy as np
 
 
@@ -35,7 +36,7 @@ class Variable:
         add_func(self._creator)
         while funcs:
             f = heapq.heappop_max(funcs)
-            gys = [output.grad for output in f.outputs]
+            gys = [output().grad for output in f.outputs]
             gxs = f.backward(*gys)
             if not isinstance(gxs, tuple):
                 gxs = (gxs,)
@@ -65,7 +66,7 @@ class Function(ABC):
         if not isinstance(ys, tuple):
             ys = (ys,)
         outputs = [Variable(y, creator=self) for y in ys]
-        self.outputs = outputs
+        self.outputs = [weakref.ref(output) for output in outputs]
         return outputs if len(outputs) > 1 else outputs[0]
 
     def __lt__(self, other: Function):
