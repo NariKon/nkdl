@@ -9,7 +9,7 @@ from config import Config
 
 
 class Variable:
-    def __init__(self, data: np.generic | np.ndarray):
+    def __init__(self, data: np.generic | np.ndarray, name: str | None = None):
         if data is not None:
             if np.isscalar(data):
                 data = np.array(data)
@@ -18,7 +18,8 @@ class Variable:
                     f"{type(data)} is not supported. Use np.ndarray instead."
                 )
 
-        self.data: np.ndarray = data
+        self.data = data
+        self.name = name
         self._creator: Function | None = None
         self.generation = 0
         self.grad: np.ndarray | None = None
@@ -63,6 +64,30 @@ class Variable:
     def set_creator(self, creator: Function):
         self._creator = creator
         self.generation = creator.generation + 1
+
+    @property
+    def shape(self):
+        return self.data.shape
+
+    @property
+    def ndim(self):
+        return self.data.ndim
+
+    @property
+    def size(self):
+        return self.data.size
+
+    @property
+    def dtype(self) -> np.dtype:
+        return self.data.dtype
+    
+    def __len__(self):
+        return len(self.data)
+    
+    def __repr__(self):
+        if self.data is None:
+            return 'variable(None)'
+        return f'variable({str(self.data).replace('\n', '\n' + ' ' * 9)})'
 
 
 class Function(ABC):
