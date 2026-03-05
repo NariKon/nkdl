@@ -129,3 +129,12 @@ class TestAdd:
 
         assert y.grad == 1.0
         assert x.grad == 3.0
+
+    def test_generation_order_backprops(self):
+        x = Variable(np.array(2.0))
+        a = square(x)
+        y = add(square(a), square(a))
+        y.backward()
+
+        assert y.data == 32.0
+        assert x.grad == 64.0

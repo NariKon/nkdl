@@ -16,13 +16,23 @@ class Variable:
 
         self.data: np.ndarray = data
         self._creator: Function | None = creator
+        self.generation = creator.generation + 1 if creator is not None else 0
         self.grad: np.ndarray | None = None
 
     def backward(self):
         if self.grad is None:
             self.grad = np.ones_like(self.data)
 
-        funcs = [self._creator]
+        funcs = list()
+        seen_set = set()
+
+        def add_func(f):
+            if f not in seen_set:
+                funcs.append(f)
+                seen_set.add(f)
+                funcs.sort(key=lambda x: x.generation)
+
+        add_func(self._creator)
         while funcs:
             f = funcs.pop()
             gys = [output.grad for output in f.outputs]
@@ -36,8 +46,9 @@ class Variable:
                 else:
                     # create new instance since in-place operation would modify the previous Variable's grad
                     x.grad = x.grad + gx
+
                 if x._creator is not None:
-                    funcs.append(x._creator)
+                    add_func(x._creator)
 
     def cleargrad(self):
         self.grad = None
@@ -47,6 +58,8 @@ class Function(ABC):
     # TODO: Sequence[Variable] -> Sequence[Variable] is preferable
     def __call__(self, *inputs: Sequence[Variable]) -> Variable | Sequence[Variable]:
         self.inputs = inputs
+        self.generation = max([x.generation for x in inputs])
+
         xs = [x.data for x in inputs]
         ys = self.forward(*xs)
         if not isinstance(ys, tuple):
