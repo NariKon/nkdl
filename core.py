@@ -92,7 +92,7 @@ class Variable:
 
 class Function(ABC):
     # TODO: Sequence[Variable] -> Sequence[Variable] is preferable
-    def __call__(self, *inputs: Sequence[Variable]) -> Variable | Sequence[Variable]:
+    def __call__(self, *inputs: Variable) -> Variable | Sequence[Variable]:
         xs = [x.data for x in inputs]
         ys = self.forward(*xs)
         if not isinstance(ys, tuple):
@@ -111,7 +111,7 @@ class Function(ABC):
         return self.generation < other.generation
 
     @abstractmethod
-    def forward(self, x: np.ndarray) -> np.ndarray:
+    def forward(self, *x: np.ndarray) -> tuple[np.ndarray, ...]:
         raise TypeError()
 
     @abstractmethod
@@ -147,5 +147,5 @@ class Add(Function):
         return (x1 + x2,)
 
     @override
-    def backward(self, gy: np.ndarray) -> tuple[np.ndarray]:
+    def backward(self, gy: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         return (gy, gy)
