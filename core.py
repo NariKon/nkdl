@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+import heapq
 from typing import override
 import numpy as np
 
@@ -28,13 +29,12 @@ class Variable:
 
         def add_func(f):
             if f not in seen_set:
-                funcs.append(f)
+                heapq.heappush_max(funcs, f)
                 seen_set.add(f)
-                funcs.sort(key=lambda x: x.generation)
 
         add_func(self._creator)
         while funcs:
-            f = funcs.pop()
+            f = heapq.heappop_max(funcs)
             gys = [output.grad for output in f.outputs]
             gxs = f.backward(*gys)
             if not isinstance(gxs, tuple):
@@ -67,6 +67,9 @@ class Function(ABC):
         outputs = [Variable(y, creator=self) for y in ys]
         self.outputs = outputs
         return outputs if len(outputs) > 1 else outputs[0]
+
+    def __lt__(self, other: Function):
+        return self.generation < other.generation
 
     @abstractmethod
     def forward(self, x: np.ndarray) -> np.ndarray:
