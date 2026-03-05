@@ -5,9 +5,11 @@ from typing import override
 import weakref
 import numpy as np
 
+from config import Config
+
 
 class Variable:
-    def __init__(self, data: np.generic | np.ndarray, creator: Function | None = None):
+    def __init__(self, data: np.generic | np.ndarray):
         if data is not None:
             if np.isscalar(data):
                 data = np.array(data)
@@ -17,11 +19,11 @@ class Variable:
                 )
 
         self.data: np.ndarray = data
-        self._creator: Function | None = creator
-        self.generation = creator.generation + 1 if creator is not None else 0
+        self._creator: Function | None = None
+        self.generation = 0
         self.grad: np.ndarray | None = None
 
-    def backward(self):
+    def backward(self, retain_grad=False):
         if self.grad is None:
             self.grad = np.ones_like(self.data)
 
@@ -51,22 +53,33 @@ class Variable:
                 if x._creator is not None:
                     add_func(x._creator)
 
+            if not retain_grad:
+                for y in f.outputs:
+                    y().grad = None
+
     def cleargrad(self):
         self.grad = None
+
+    def set_creator(self, creator: Function):
+        self._creator = creator
+        self.generation = creator.generation + 1
 
 
 class Function(ABC):
     # TODO: Sequence[Variable] -> Sequence[Variable] is preferable
     def __call__(self, *inputs: Sequence[Variable]) -> Variable | Sequence[Variable]:
-        self.inputs = inputs
-        self.generation = max([x.generation for x in inputs])
-
         xs = [x.data for x in inputs]
         ys = self.forward(*xs)
         if not isinstance(ys, tuple):
             ys = (ys,)
-        outputs = [Variable(y, creator=self) for y in ys]
-        self.outputs = [weakref.ref(output) for output in outputs]
+        outputs = [Variable(y) for y in ys]
+        if Config.enable_backprop:
+            self.inputs = inputs
+            self.generation = max([x.generation for x in inputs])
+            for output in outputs:
+                output.set_creator(self)
+            self.outputs = [weakref.ref(output) for output in outputs]
+
         return outputs if len(outputs) > 1 else outputs[0]
 
     def __lt__(self, other: Function):

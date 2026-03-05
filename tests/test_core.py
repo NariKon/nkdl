@@ -113,7 +113,7 @@ class TestAdd:
     def test_reuse_the_same_variable(self):
         x = Variable(np.array(3.0))
         y = add(x, x)
-        y.backward()
+        y.backward(retain_grad=True)
 
         assert y.grad == 1.0
         assert x.grad == 2.0
@@ -125,7 +125,7 @@ class TestAdd:
 
         x.cleargrad()
         y = add(add(x, x), x)
-        y.backward()
+        y.backward(retain_grad=True)
 
         assert y.grad == 1.0
         assert x.grad == 3.0

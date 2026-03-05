@@ -19,3 +19,24 @@ Line #    Mem usage    Increment  Occurrences   Line Contents
      9     34.2 MiB      0.0 MiB          11       for _ in range(iter_max):
     10     34.2 MiB      0.0 MiB          10           x = Variable(np.array(10_000))
     11     34.2 MiB      0.1 MiB          10           y = square(square(square(x)))
+
+
+Filename: samples/memory_prof_sample.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    15     34.4 MiB     34.4 MiB           1   @profile
+    16                                         def nested_square_3d_with_backprops():
+    17     45.3 MiB     10.8 MiB           1       x = Variable(np.random.rand(100, 100, 100))
+    18     68.2 MiB     22.9 MiB           1       y = square(square(square(x)))
+
+
+Filename: samples/memory_prof_sample.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    21     33.3 MiB     33.3 MiB           1   @profile
+    22                                         def nested_square_3d_with_no_backprops():
+    23     59.4 MiB      0.0 MiB           2       with Config.no_grad():
+    24     44.1 MiB     10.8 MiB           1           x = Variable(np.random.rand(100, 100, 100))
+    25     59.4 MiB     15.3 MiB           1           y = square(square(square(x)))
